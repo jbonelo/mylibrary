@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biblioteca</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #f5f2eb;
+    --ink: #1a1a1a;
+    --accent: #c0392b;
+    --muted: #7a7265;
+    --line: #d4cfc6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'EB Garamond', serif;
+    font-size: 15px;
+    padding: 40px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  header .count {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .controls input {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    background: white;
+    color: var(--ink);
+    outline: none;
+    width: 220px;
+    letter-spacing: 0.05em;
+  }
+
+  .controls input:focus { border-color: var(--ink); }
+
+  .filter-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  .filter-btn.active { color: #f5c842; }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding-right: 4px;
+  }
+
+  .val-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .val-btn:hover, .val-btn.active {
+    background: var(--ink);
+    color: #f5c842;
+    border-color: var(--ink);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr { border-bottom: 1px solid var(--ink); }
+
+  th {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 12px 8px 0;
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  th:hover { color: var(--ink); }
+  th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+
+  td {
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    line-height: 1.4;
+  }
+
+  tr:hover td { background: rgba(0,0,0,0.02); }
+  td:first-child { font-style: italic; }
+
+  td.author {
+    font-style: normal;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  td.year {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  td.year .uncertain { color: var(--accent); }
+
+  td.val { font-size: 15px; white-space: nowrap; width: 32px; }
+
+  .cat-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .cat-historia { color: #8B4513; }
+  .cat-economia { color: #1a6b3c; }
+  .cat-psicologia { color: #2c5f8a; }
+  .cat-filosofia { color: #6b3d8a; }
+  .cat-geopolitica { color: #c0392b; }
+  .cat-literatura { color: #b5651d; }
+  .cat-otros { color: #555; }
+
+  .no-results {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 40px 0;
+    text-align: center;
+    display: none;
+  }
+
+  .footnote {
+    margin-top: 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Biblioteca — Inventario</h1>
+  <span class="count" id="counter"></span>
+</header>
+
+<div class="controls">
+  <input type="text" id="search" placeholder="Buscar título, autor..." oninput="applyFilters()">
+  <button class="filter-btn active" data-cat="all" onclick="setCatFilter('all', this)">Todos</button>
+  <button class="filter-btn" data-cat="historia/biografia" onclick="setCatFilter('historia/biografia', this)">Historia/Biog.</button>
+  <button class="filter-btn" data-cat="economia" onclick="setCatFilter('economia', this)">Economía</button>
+  <button class="filter-btn" data-cat="psicologia" onclick="setCatFilter('psicologia', this)">Psicología</button>
+  <button class="filter-btn" data-cat="filosofia/ensayo" onclick="setCatFilter('filosofia/ensayo', this)">Filosofía/Ensayo</button>
+  <button class="filter-btn" data-cat="geopolitica/global affairs" onclick="setCatFilter('geopolitica/global affairs', this)">Geopolítica</button>
+  <button class="filter-btn" data-cat="otros" onclick="setCatFilter('otros', this)">Otros</button>
+</div>
+
+<div class="filter-row">
+  <span class="filter-label">Valoración:</span>
+  <button class="val-btn active" data-val="all" onclick="setValFilter('all', this)">Todos</button>
+  <button class="val-btn" data-val="3" onclick="setValFilter('3', this)">★ Obra maestra</button>
+  <button class="val-btn" data-val="2" onclick="setValFilter('2', this)">◆ Imprescindible</button>
+  <button class="val-btn" data-val="1" onclick="setValFilter('1', this)">● Bueno</button>
+  <button class="val-btn" data-val="0" onclick="setValFilter('0', this)">○ Indiferente</button>
+  <button class="val-btn" data-val="000" onclick="setValFilter('000', this)">— No leído</button>
+</div>
+
+<table id="bookTable">
+  <thead>
+    <tr>
+      <th onclick="sortTable('title')">Título</th>
+      <th onclick="sortTable('author')">Autor</th>
+      <th onclick="sortTable('year')">Año</th>
+      <th onclick="sortTable('cat')">Categoría</th>
+      <th onclick="sortTable('val')">Val.</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<div class="no-results" id="noResults">Sin resultados.</div>
+
+<div class="footnote">★ Obra maestra &nbsp;|&nbsp; ◆ Imprescindible &nbsp;|&nbsp; ● Bueno &nbsp;|&nbsp; ○ Indiferente &nbsp;|&nbsp; — No leído &nbsp;|&nbsp; · Sin valorar &nbsp;|&nbsp; * año incierto &nbsp;|&nbsp; [?] título/autor parcial</div>
+
+<script>
+const books = [
+  {title:"The Decline of the West (Vol. I)",author:"Oswald Spengler",year:1918,cat:"filosofia/ensayo",val:"000"},
+  {title:"Team of Rivals",author:"Doris Kearns Goodwin",year:2005,cat:"historia/biografia",val:"000"},
+  {title:"El Antiguo Régimen y la Revolución (3 vols.)",author:"Alexis de Tocqueville",year:1856,cat:"historia/biografia",val:"000"},
+  {title:"Vidas Paralelas (3 vols.)",author:"Plutarco",year:100,cat:"historia/biografia",val:"000"},
+  {title:"The Hinge of Fate (WWII Vol. IV)",author:"Winston Churchill",year:1950,cat:"historia/biografia",val:"000"},
+  {title:"The Gathering Storm (WWII Vol. I)",author:"Winston Churchill",year:1948,cat:"historia/biografia",val:"000"},
+  {title:"Triumph and Tragedy (WWII Vol. VI)",author:"Winston Churchill",year:1954,cat:"historia/biografia",val:"000"},
+  {title:"Closing the Ring (WWII Vol. V)",author:"Winston Churchill",year:1951,cat:"historia/biografia",val:"000"},
+  {title:"Their Finest Hour (WWII Vol. II)",author:"Winston Churchill",year:1949,cat:"historia/biografia",val:"000"},
+  {title:"The Grand Alliance (WWII Vol. III)",author:"Winston Churchill",year:1950,cat:"historia/biografia",val:"000"},
+  {title:"The Protestant Ethic and the Spirit of Capitalism",author:"Max Weber",year:1905,cat:"filosofia/ensayo",val:"000"},
+  {title:"The Grand Chessboard",author:"Zbigniew Brzezinski",year:1997,cat:"geopolitica/global affairs",val:"000"},
+  {title:"God Is Not Great",author:"Christopher Hitchens",year:2007,cat:"filosofia/ensayo",val:"000"},
+  {title:"A (Very) Short History of Life on Earth",author:"Henry Gee",year:2021,cat:"otros",val:"000"},
+  {title:"Archipiélago Gulag I",author:"Aleksandr Solzhenitsyn",year:1973,cat:"historia/biografia",val:"000"},
+  {title:"Historia de Roma (4 vols. - U.D.)",author:"Varios",year:"?",cat:"historia/biografia",val:"0"},
+  {title:"El Feudalismo y el Antiguo Régimen [?]",author:"[?]",year:"?",cat:"historia/biografia",val:"?"},
+  {title:"Curso de Economía de la Empresa",author:"Andrés S. Suárez Suárez",year:1992,cat:"economia",val:"0"},
+  {title:"La Dirección Estratégica de la Empresa",author:"Varios",year:"?",cat:"economia",val:"0"},
+  {title:"Management 3.0",author:"Jurgen Appelo",year:2011,cat:"economia",val:"0"},
+  {title:"The Economic Consequences of the Peace",author:"John Maynard Keynes",year:1919,cat:"economia",val:"000"},
+  {title:"La Rebelión de las Masas",author:"José Ortega y Gasset",year:1930,cat:"filosofia/ensayo",val:"1"},
+  {title:"Historia Militar [?]",author:"[?]",year:"?",cat:"historia/biografia",val:"?"},
+  {title:"The Creative Act",author:"Rick Rubin",year:2023,cat:"otros",val:"1"},
+  {title:"Liberalism and Its Discontents",author:"Francis Fukuyama",year:2022,cat:"filosofia/ensayo",val:"1"},
+  {title:"Between the World and Me",author:"Ta-Nehisi Coates",year:2015,cat:"filosofia/ensayo",val:"0"},
+  {title:"Episodios Nacionales (23 vols.)",author:"Benito Pérez Galdós",year:1873,cat:"literatura",val:"000"},
+  {title:"Colección Grandes Pensadores: Sócrates y Platón (vol. 1)",author:"Frederick Copleston",year:2007,cat:"filosofia/ensayo",val:"000"},
+  {title:"Colección Grandes Pensadores: Aristóteles (vol. 2)",author:"Aristóteles",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Séneca (vol. 3)",author:"Séneca",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: San Agustín (vol. 4)",author:"San Agustín",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Santo Tomás (vol. 5)",author:"Santo Tomás de Aquino",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Descartes (vol. 6)",author:"René Descartes",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Pascal (vol. 7)",author:"Blaise Pascal",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Rousseau (vol. 8)",author:"Jean-Jacques Rousseau",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Adam Smith (vol. 9)",author:"Adam Smith",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Kant (vol. 10)",author:"Immanuel Kant",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Hegel (vol. 11)",author:"G.W.F. Hegel",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: John Stuart Mill (vol. 12)",author:"John Stuart Mill",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Darwin (vol. 13)",author:"Charles Darwin",year:2007,cat:"otros",val:"?"},
+  {title:"Colección Grandes Pensadores: Marx (vol. 14)",author:"Karl Marx",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Nietzsche (vol. 15)",author:"Friedrich Nietzsche",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Freud (vol. 16)",author:"Sigmund Freud",year:2007,cat:"psicologia",val:"?"},
+  {title:"Colección Grandes Pensadores: Bertrand Russell (vol. 17)",author:"Bertrand Russell",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Ortega y Gasset (vol. 18)",author:"José Ortega y Gasset",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Popper (vol. 19)",author:"Karl Popper",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Sartre (vol. 20)",author:"Jean-Paul Sartre",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Lévi-Strauss (vol. 21)",author:"Claude Lévi-Strauss",year:2007,cat:"filosofia/ensayo",val:"?"},
+  {title:"Colección Grandes Pensadores: Einstein (vol. 22)",author:"Albert Einstein",year:2007,cat:"otros",val:"?"},
+  {title:"Colección Grandes Pensadores: Ramón y Cajal (vol. 23)",author:"Santiago Ramón y Cajal",year:2007,cat:"otros",val:"?"},
+  {title:"Colección Grandes Pensadores: Newton (vol. 24)",author:"Isaac Newton",year:2007,cat:"otros",val:"?"},
+  {title:"Imago Mundi [?]",author:"[?]",year:"?",cat:"otros",val:"?"},
+  {title:"The Road to Serfdom",author:"F.A. Hayek",year:1944,cat:"economia",val:"1"},
+  {title:"Before the Storm",author:"Mike Duncan",year:2017,cat:"historia/biografia",val:"000"},
+  {title:"Se questo è un uomo",author:"Primo Levi",year:1947,cat:"historia/biografia",val:"000"},
+  {title:"Good Economics for Hard Times",author:"Abhijit Banerjee & Esther Duflo",year:2019,cat:"economia",val:"000"},
+  {title:"On Tyranny",author:"Timothy Snyder",year:2017,cat:"filosofia/ensayo",val:"1"},
+  {title:"How to Marry a Finnish Girl",author:"Phil Schwarzmann",year:2013,cat:"otros",val:"0"},
+  {title:"The Changing World Order",author:"Ray Dalio",year:2021,cat:"geopolitica/global affairs",val:"1"},
+  {title:"Corporate Finance",author:"Brealey, Myers & Allen",year:1981,cat:"economia",val:"0"},
+  {title:"Emperor of Rome",author:"Mary Beard",year:2023,cat:"historia/biografia",val:"0"},
+  {title:"The Culture Map",author:"Erin Meyer",year:2014,cat:"economia",val:"1"},
+  {title:"The Price of Inequality",author:"Joseph E. Stiglitz",year:2012,cat:"economia",val:"000"},
+  {title:"Thinking, Fast and Slow",author:"Daniel Kahneman",year:2011,cat:"psicologia",val:"3"},
+  {title:"Outliers",author:"Malcolm Gladwell",year:2008,cat:"psicologia",val:"1"},
+  {title:"The Age of Surveillance Capitalism",author:"Shoshana Zuboff",year:2019,cat:"economia",val:"1"},
+  {title:"The Age of Surveillance Capitalism (2ª copia)",author:"Shoshana Zuboff",year:2019,cat:"economia",val:"1"},
+  {title:"Think Again",author:"Adam Grant",year:2021,cat:"psicologia",val:"0"},
+  {title:"Sapiens",author:"Yuval Noah Harari",year:2011,cat:"historia/biografia",val:"2"},
+  {title:"The Coming Wave",author:"Mustafa Suleyman",year:2023,cat:"otros",val:"1"},
+  {title:"From Impossible to Inevitable",author:"Aaron Ross & Jason Lemkin",year:2016,cat:"economia",val:"0"},
+  {title:"Nuclear War",author:"Annie Jacobsen",year:2024,cat:"geopolitica/global affairs",val:"1"},
+  {title:"The Black Swan",author:"Nassim Nicholas Taleb",year:2007,cat:"economia",val:"2"},
+  {title:"Office Politics",author:"Kenji Ueda [?]",year:"?",cat:"economia",val:"?"},
+  {title:"Los secretos de la papelera",author:"Varios [?]",year:"?",cat:"otros",val:"?"},
+  {title:"El universo que rigen el pesar [?]",author:"Jordi Pereyra [?]",year:"?",cat:"otros",val:"?"},
+  {title:"Las 4 fuerzas que rigen la política económica",author:"Álvarez y Castro [?]",year:"?",cat:"economia",val:"?"},
+  {title:"Amazon Unbound",author:"Brad Stone",year:2021,cat:"historia/biografia",val:"1"},
+  {title:"Humanocracy",author:"Gary Hamel & Michele Zanini",year:2020,cat:"economia",val:"0"},
+  {title:"2030",author:"Mauro F. Guillén",year:2020,cat:"geopolitica/global affairs",val:"0"},
+  {title:"The Big Lebowski and Philosophy",author:"Varios",year:2012,cat:"filosofia/ensayo",val:"0"},
+  {title:"The Decision Book",author:"Mikael Krogerus & Roman Tschäppeler",year:2008,cat:"otros",val:"0"},
+  {title:"Antifragile",author:"Nassim Nicholas Taleb",year:2012,cat:"economia",val:"1"},
+  {title:"The Book of Why",author:"Judea Pearl & Dana Mackenzie",year:2018,cat:"otros",val:"000"},
+  {title:"Prisoners of Geography",author:"Tim Marshall",year:2015,cat:"geopolitica/global affairs",val:"3"},
+  {title:"Skin in the Game",author:"Nassim Nicholas Taleb",year:2018,cat:"economia",val:"1"},
+  {title:"36 Hours: 125 Fines de Semana en Europa",author:"New York Times",year:2010,cat:"otros",val:"0"},
+  {title:"Competing in the Age of AI",author:"Marco Iansiti & Karim Lakhani",year:2020,cat:"economia",val:"1"},
+  {title:"Una Historia de España",author:"Arturo Pérez-Reverte",year:2019,cat:"historia/biografia",val:"2"},
+  {title:"La Guerra Civil Española",author:"Antony Beevor",year:2006,cat:"historia/biografia",val:"000"},
+  {title:"Enlightenment Now",author:"Steven Pinker",year:2018,cat:"filosofia/ensayo",val:"2"},
+  {title:"Determined: Life Without Free Will",author:"Robert Sapolsky",year:2023,cat:"filosofia/ensayo",val:"1"},
+  {title:"The Power of Geography",author:"Tim Marshall",year:2021,cat:"geopolitica/global affairs",val:"1"},
+  {title:"The Genetic Lottery: Why DNA Matters for Social Equality",author:"Kathryn Paige Harden",year:2021,cat:"otros",val:"0"},
+  {title:"Historia del Tiempo",author:"Stephen Hawking",year:1988,cat:"otros",val:"1"},
+  {title:"Worth Dying For",author:"Tim Marshall",year:2016,cat:"geopolitica/global affairs",val:"0"},
+  {title:"España en su laberinto",author:"J.M. García Margallo & J. Eguidazu",year:2019,cat:"geopolitica/global affairs",val:"1"},
+  {title:"Let My People Go Surfing",author:"Yvon Chouinard",year:2005,cat:"historia/biografia",val:"1"},
+  {title:"Capitalism and Freedom",author:"Milton Friedman",year:1962,cat:"economia",val:"1"},
+  {title:"The Tyranny of Merit",author:"Michael J. Sandel",year:2020,cat:"filosofia/ensayo",val:"2"},
+  {title:"Contagious",author:"Jonah Berger",year:2013,cat:"economia",val:"1"},
+  {title:"Misbehaving",author:"Richard H. Thaler",year:2015,cat:"economia",val:"000"},
+  {title:"The Illustrated A Brief History of Time",author:"Stephen Hawking",year:1996,cat:"otros",val:"1"},
+  {title:"Atomic Habits",author:"James Clear",year:2018,cat:"psicologia",val:"2"},
+  {title:"Kitchen Confidential",author:"Anthony Bourdain",year:2000,cat:"historia/biografia",val:"000"},
+  {title:"How Democracies Die",author:"Steven Levitsky & Daniel Ziblatt",year:2018,cat:"geopolitica/global affairs",val:"1"},
+  {title:"Nothin' but a Good Time: Numbers Don't Lie",author:"Vaclav Smil [?]",year:"?",cat:"otros",val:"?"},
+  {title:"Historias de una leyenda",author:"Alfredo Di Stéfano",year:2000,cat:"historia/biografia",val:"0"},
+  {title:"Blue Ocean Strategy",author:"Kim & Mauborgne",year:2004,cat:"economia",val:"1"},
+  {title:"Manual de sistema financiero español",author:"L. Rodríguez Sáiz, J.A. Parejo et al.",year:1994,cat:"economia",val:"0"},
+  {title:"El Contrato Social",author:"Jean-Jacques Rousseau",year:1762,cat:"filosofia/ensayo",val:"000"},
+  {title:"Why Nations Fail",author:"Daron Acemoglu & James A. Robinson",year:2012,cat:"economia",val:"000"},
+  {title:"The Metaverse",author:"Matthew Ball",year:2022,cat:"economia",val:"0"},
+  {title:"Human Universe",author:"Brian Cox & Andrew Cohen",year:2014,cat:"otros",val:"000"},
+  {title:"Guns, Germs, and Steel",author:"Jared Diamond",year:1997,cat:"historia/biografia",val:"3"},
+  {title:"Being and Time",author:"Martin Heidegger",year:1927,cat:"filosofia/ensayo",val:"000"},
+  {title:"AI Superpowers",author:"Kai-Fu Lee",year:2018,cat:"economia",val:"2"},
+  {title:"El Arte de la Guerra",author:"Sun Tzu",year:-500,cat:"filosofia/ensayo",val:"1"},
+  {title:"Churchill",author:"Andrew Roberts",year:2018,cat:"historia/biografia",val:"3"},
+  {title:"Led Zeppelin (libro fotográfico)",author:"Varios",year:2012,cat:"otros",val:"0"},
+  {title:"How Emotions Are Made",author:"Lisa Feldman Barrett",year:2017,cat:"psicologia",val:"000"},
+  {title:"The Crisis of Democratic Capitalism",author:"Martin Wolf",year:2023,cat:"economia",val:"1"},
+  {title:"Strategy: A History",author:"Lawrence Freedman",year:2013,cat:"geopolitica/global affairs",val:"3"},
+  {title:"Basic Economics",author:"Thomas Sowell",year:2000,cat:"economia",val:"2"},
+  {title:"A Theory of Justice",author:"John Rawls",year:1971,cat:"filosofia/ensayo",val:"3"},
+  {title:"Blindspot",author:"Mahzarin R. Banaji & Anthony G. Greenwald",year:2013,cat:"psicologia",val:"000"},
+  {title:"Four Battlegrounds",author:"Paul Scharre",year:2023,cat:"geopolitica/global affairs",val:"000"},
+  {title:"Collapse",author:"Jared Diamond",year:2005,cat:"otros",val:"000"},
+  {title:"Power",author:"Jeffrey Pfeffer",year:2010,cat:"economia",val:"1"},
+  {title:"Technofeudalism",author:"Yanis Varoufakis",year:2023,cat:"economia",val:"0"},
+  {title:"Storia di Roma",author:"Indro Montanelli",year:1959,cat:"historia/biografia",val:"2"},
+  {title:"The Infinite Game",author:"Simon Sinek",year:2019,cat:"economia",val:"1"},
+  {title:"Surrender",author:"Bono",year:2022,cat:"historia/biografia",val:"0"},
+  {title:"When McKinsey Comes to Town",author:"Walt Bogdanich & Michael Forsythe",year:2022,cat:"economia",val:"0"},
+  {title:"The God Equation",author:"Michio Kaku",year:2021,cat:"otros",val:"2"},
+  {title:"El Economista Camuflado",author:"Tim Harford",year:2005,cat:"economia",val:"0"},
+  {title:"The Storyteller",author:"Dave Grohl",year:2021,cat:"historia/biografia",val:"1"},
+  {title:"The Future Is Faster Than You Think",author:"Diamandis & Kotler",year:2020,cat:"otros",val:"0"},
+  {title:"The Business Book (DK)",author:"Varios",year:2014,cat:"economia",val:"0"},
+  {title:"Hacking Growth",author:"Sean Ellis & Morgan Brown",year:2017,cat:"economia",val:"0"},
+  {title:"Originals",author:"Adam Grant",year:2016,cat:"economia",val:"000"},
+  {title:"El universo elegante [?]",author:"Brian Greene [?]",year:1999,cat:"otros",val:"0"},
+  {title:"A Promised Land",author:"Barack Obama",year:2020,cat:"historia/biografia",val:"1"},
+  {title:"AI 2041",author:"Kai-Fu Lee & Chen Qiufan",year:2021,cat:"otros",val:"0"},
+  {title:"The Essential Drucker",author:"Peter Drucker",year:2001,cat:"economia",val:"2"},
+  {title:"What Money Can't Buy",author:"Michael J. Sandel",year:2012,cat:"filosofia/ensayo",val:"1"},
+  {title:"Free: Al Poder",author:"Martin Baron",year:"?",cat:"historia/biografia",val:"1"},
+  {title:"Homo Deus",author:"Yuval Noah Harari",year:2015,cat:"filosofia/ensayo",val:"1"},
+  {title:"A People's Tragedy: The Russian Revolution",author:"Orlando Figes",year:1996,cat:"historia/biografia",val:"000"},
+  {title:"Who Rules the World?",author:"Noam Chomsky",year:2016,cat:"geopolitica/global affairs",val:"1"},
+  {title:"Scar Tissue",author:"Anthony Kiedis",year:2004,cat:"historia/biografia",val:"0"},
+  {title:"Thank You for Being Late",author:"Thomas L. Friedman",year:2016,cat:"geopolitica/global affairs",val:"1"},
+  {title:"Tierra Baldía",author:"Robert D. Kaplan",year:2016,cat:"geopolitica/global affairs",val:"1"},
+  {title:"The Blind Watchmaker",author:"Richard Dawkins",year:1986,cat:"otros",val:"000"},
+  {title:"El Príncipe",author:"Nicolás Maquiavelo",year:1532,cat:"filosofia/ensayo",val:"000"},
+  {title:"Surrounded by Idiots",author:"Thomas Erikson",year:2014,cat:"psicologia",val:"1"},
+  {title:"The Selfish Gene",author:"Richard Dawkins",year:1976,cat:"otros",val:"1"},
+  {title:"Radical Candor",author:"Kim Scott",year:2017,cat:"economia",val:"1"},
+  {title:"El hombre rebelde",author:"Albert Camus",year:1951,cat:"filosofia/ensayo",val:"000"},
+  {title:"Emotional Agility",author:"Susan David",year:2016,cat:"psicologia",val:"000"},
+  {title:"Man's Search for Meaning",author:"Viktor Frankl",year:1946,cat:"psicologia",val:"3"},
+  {title:"The Structure of Scientific Revolutions",author:"Thomas S. Kuhn",year:1962,cat:"otros",val:"000"},
+  {title:"Astrophysics for People in a Hurry",author:"Neil deGrasse Tyson",year:2017,cat:"otros",val:"1"},
+  {title:"El Antiguo Madrid",author:"Ramón de Mesonero Romanos",year:1861,cat:"historia/biografia",val:"000"},
+  {title:"Freakonomics",author:"Levitt & Dubner",year:2005,cat:"economia",val:"0"},
+  {title:"The Revenge of Geography",author:"Robert D. Kaplan",year:2012,cat:"geopolitica/global affairs",val:"1"},
+  {title:"The Righteous Mind",author:"Jonathan Haidt",year:2012,cat:"psicologia",val:"2"},
+  {title:"The Better Angels of Our Nature",author:"Steven Pinker",year:2011,cat:"psicologia",val:"000"},
+  {title:"El mundo que nos viene [?]",author:"Josep Piqué [?]",year:"?",cat:"geopolitica/global affairs",val:"0"},
+  {title:"Los verbos italianos",author:"Varios",year:"?",cat:"otros",val:"0"},
+  {title:"Happiness Advantage",author:"Shawn Achor",year:2010,cat:"psicologia",val:"1"},
+  {title:"Subscribed",author:"Tien Tzuo",year:2018,cat:"economia",val:"1"},
+  {title:"Happy City",author:"Charles Montgomery",year:2013,cat:"otros",val:"0"},
+  {title:"Scarcity",author:"Sendhil Mullainathan & Eldar Shafir",year:2013,cat:"psicologia",val:"0"},
+  {title:"El universo en una taza de café",author:"Jordi Pereyra",year:2020,cat:"otros",val:"000"},
+  {title:"Aligning Strategy and Sales",author:"Frank V. Cespedes",year:2014,cat:"economia",val:"0"},
+  {title:"The Lean Startup",author:"Eric Ries",year:2011,cat:"economia",val:"2"},
+  {title:"Justice: What's the Right Thing to Do?",author:"Michael J. Sandel",year:2009,cat:"filosofia/ensayo",val:"3"},
+  {title:"Hyperculture",author:"Byung-Chul Han",year:2022,cat:"filosofia/ensayo",val:"0"},
+  {title:"The Heart of the Buddha's Teaching",author:"Thich Nhat Hanh",year:1998,cat:"filosofia/ensayo",val:"1"},
+  {title:"The Anxious Generation",author:"Jonathan Haidt",year:2024,cat:"psicologia",val:"1"},
+  {title:"Strategy Beyond the Hockey Stick",author:"Varios (McKinsey)",year:2018,cat:"economia",val:"0"},
+  {title:"Excellent Advice for Living",author:"Kevin Kelly",year:2023,cat:"filosofia/ensayo",val:"1"},
+  {title:"The History of the IRA",author:"Richard English",year:2003,cat:"historia/biografia",val:"1"},
+  {title:"Armed Struggle [?]",author:"[?]",year:"?",cat:"historia/biografia",val:"1"},
+  {title:"Introducing Continental Philosophy",author:"Varios",year:2001,cat:"filosofia/ensayo",val:"0"},
+  {title:"El lobo estepario",author:"Hermann Hesse",year:1927,cat:"literatura",val:"000"},
+  {title:"Getting to Yes",author:"Roger Fisher & William Ury",year:1981,cat:"economia",val:"1"},
+  {title:"To Sell Is Human",author:"Daniel H. Pink",year:2012,cat:"economia",val:"0"},
+  {title:"Otros 365 días para ser más culto",author:"Sergio de la Calle",year:2020,cat:"otros",val:"0"},
+  {title:"The Art of Managing [?]",author:"David S. Kidder & Noah D. Oppenheim",year:"?",cat:"economia",val:"0"},
+  {title:"La risa asusta al miedo [?]",author:"[?]",year:"?",cat:"otros",val:"0"},
+  {title:"The New Strategic Selling",author:"Miller & Heiman",year:1985,cat:"economia",val:"0"},
+  {title:"El que no lea este libro es un imbécil",author:"Oliviero Ponte di Pino",year:2000,cat:"otros",val:"0"},
+  {title:"Madrid Curioso",author:"Varios",year:"?",cat:"otros",val:"0"},
+  {title:"Guide to Managerial Communication",author:"Munter [?]",year:"?",cat:"economia",val:"1"},
+  {title:"How Will You Measure Your Life?",author:"Clayton Christensen",year:2012,cat:"filosofia/ensayo",val:"1"},
+  {title:"A Guide to the Good Life",author:"William B. Irvine",year:2008,cat:"filosofia/ensayo",val:"2"},
+  {title:"Leviatán",author:"Thomas Hobbes",year:1651,cat:"filosofia/ensayo",val:"3"},
+  {title:"World Order",author:"Henry Kissinger",year:2014,cat:"geopolitica/global affairs",val:"1"},
+  {title:"The Revolutionary Temper: Paris, 1748-1789",author:"Robert Darnton",year:2023,cat:"historia/biografia",val:"000"},
+  {title:"Historia de España: Guía imprescindible para jóvenes",author:"Ricardo de la Cierva",year:2001,cat:"historia/biografia",val:"1"},
+
+  // Recomendaciones añadidas
+  {title:"Orientalism",author:"Edward Said",year:1978,cat:"filosofia/ensayo",val:"000"},
+  {title:"The Analects",author:"Confucio",year:-500,cat:"filosofia/ensayo",val:"000"},
+  {title:"Meditations",author:"Marco Aurelio",year:180,cat:"filosofia/ensayo",val:"1"},
+];
+
+let currentCatFilter = 'all';
+let currentValFilter = 'all';
+let sortKey = null;
+let sortDir = 1;
+
+const valDisplay = {'3':'★','2':'◆','1':'●','0':'○','000':'—','?':'·'};
+const valOrder = {'3':0,'2':1,'1':2,'0':3,'000':4,'?':5};
+
+function catClass(cat) {
+  const map = {'historia/biografia':'cat-historia','economia':'cat-economia','psicologia':'cat-psicologia','filosofia/ensayo':'cat-filosofia','geopolitica/global affairs':'cat-geopolitica','literatura':'cat-literatura','otros':'cat-otros'};
+  return map[cat] || 'cat-otros';
+}
+
+function catLabel(cat) {
+  const map = {'historia/biografia':'Historia/Biog.','economia':'Economía','psicologia':'Psicología','filosofia/ensayo':'Filosofía/Ensayo','geopolitica/global affairs':'Geopolítica','literatura':'Literatura','otros':'Otros'};
+  return map[cat] || cat;
+}
+
+function setCatFilter(cat, btn) {
+  currentCatFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function setValFilter(val, btn) {
+  currentValFilter = val;
+  document.querySelectorAll('.val-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function sortTable(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = 1; }
+  document.querySelectorAll('th').forEach(th => { th.classList.remove('sort-asc','sort-desc'); });
+  const thMap = {title:0,author:1,year:2,cat:3,val:4};
+  document.querySelectorAll('th')[thMap[key]].classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('search').value.toLowerCase();
+  let filtered = books.filter(b => {
+    const matchCat = currentCatFilter === 'all' || b.cat === currentCatFilter;
+    const matchVal = currentValFilter === 'all' || b.val === currentValFilter;
+    const matchQ = !q || b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
+    return matchCat && matchVal && matchQ;
+  });
+
+  if (sortKey) {
+    filtered.sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'year') {
+        av = av === '?' ? 9999 : Number(av);
+        bv = bv === '?' ? 9999 : Number(bv);
+        return (av - bv) * sortDir;
+      }
+      if (sortKey === 'val') return (valOrder[av] - valOrder[bv]) * sortDir;
+      return String(av).localeCompare(String(bv)) * sortDir;
+    });
+  }
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  filtered.forEach(b => {
+    const yearStr = b.year === '?' ? '<span class="uncertain">?</span>' : (b.year < 0 ? `${Math.abs(b.year)} a.C.` : b.year);
+    tbody.innerHTML += `<tr>
+      <td>${b.title}</td>
+      <td class="author">${b.author}</td>
+      <td class="year">${yearStr}</td>
+      <td><span class="cat-badge ${catClass(b.cat)}">${catLabel(b.cat)}</span></td>
+      <td class="val">${valDisplay[b.val] || '·'}</td>
+    </tr>`;
+  });
+
+  document.getElementById('counter').textContent = `${filtered.length} / ${books.length} títulos`;
+  document.getElementById('noResults').style.display = filtered.length === 0 ? 'block' : 'none';
+}
+
+applyFilters();
+</script>
+</body>
+</html>
